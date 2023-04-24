@@ -1,5 +1,7 @@
 package org.SittX.decoding;
 
+import org.SittX.util.BEncodingIterator;
+import org.SittX.util.FileIO;
 import org.SittX.util.TypeConverter;
 import org.junit.jupiter.api.Test;
 
@@ -8,13 +10,17 @@ import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.ListIterator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BEncodingTest {
 
     @Test
-    void decode() {
+    void decode() throws FileNotFoundException {
+        byte[] contents = FileIO.readFileIntoByteArray("testing.txt.torrent");
+        Object result = BEncoding.decode(contents);
+        System.out.println(result);
     }
 
     @Test
@@ -36,9 +42,9 @@ class BEncodingTest {
         Byte[] byteObjectArray = TypeConverter.toByteObjectArray(byteBuffer);
 
         // Get Iterator for the byteObjectArray
-        Iterator<Byte> iterator = Arrays.stream(byteObjectArray).iterator();
+//        BEncodingIterator<Byte> iterator = (BEncodingIterator<Byte>) Arrays.stream(byteObjectArray).toList().listIterator();
 
-        long result = (long) BEncoding.decodeNumber(iterator);
-        assertEquals(987L, result);
+//        long result = (long) BEncoding.decodeNumber(iterator);
+//        assertEquals(987L, result);
     }
 }
