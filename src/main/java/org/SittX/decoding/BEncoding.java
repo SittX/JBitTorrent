@@ -8,36 +8,53 @@ import java.util.*;
 
 // TODO write Unit tests for every methods in this class
 public class BEncoding {
-    private static final Byte listStartChar = "l".getBytes(StandardCharsets.UTF_8)[0]; // 108
-    private static final Byte listEndChar = "e".getBytes(StandardCharsets.UTF_8)[0]; // 101
-    private static final Byte numberStartChar = "i".getBytes(StandardCharsets.UTF_8)[0]; // 105
-    private static final Byte numberEndChar = "e".getBytes(StandardCharsets.UTF_8)[0]; // 101
-    private static final Byte dictionaryStartChar = "d".getBytes(StandardCharsets.UTF_8)[0]; // 100
-    private static final Byte dictionaryEndChar = "e".getBytes(StandardCharsets.UTF_8)[0]; // 101
-    private static final Byte byteArrayDivider = ":".getBytes(StandardCharsets.UTF_8)[0]; // 58
+    private static final Byte LIST_START_CHAR = "l".getBytes(StandardCharsets.UTF_8)[0]; // 108
+    private static final Byte LIST_END_CHAR = "e".getBytes(StandardCharsets.UTF_8)[0]; // 101
+    private static final Byte NUMBER_START_CHAR = "i".getBytes(StandardCharsets.UTF_8)[0]; // 105
+    private static final Byte NUMBER_END_CHAR = "e".getBytes(StandardCharsets.UTF_8)[0]; // 101
+    private static final Byte DICTIONARY_START_CHAR = "d".getBytes(StandardCharsets.UTF_8)[0]; // 100
+    private static final Byte DICTIONARY_END_CHAR = "e".getBytes(StandardCharsets.UTF_8)[0]; // 101
+    private static final Byte BYTE_ARRAY_DIVIDER = ":".getBytes(StandardCharsets.UTF_8)[0]; // 58
 
+    /***
+     * This method decodes the byte[] which got returned from reading a Torrent file.
+     * @param bytes is the file contents of the torrent file.
+     * @return Object which decodes byte[] using BEncoding encoding format.
+     */
     public static Object decode(byte[] bytes) {
         Byte[] byteObjectArray = TypeConverter.toByteObjectArray(bytes);
         ListIterator<Byte> iterator = Arrays.stream(byteObjectArray).toList().listIterator();
         return decodeNextObject(iterator);
     }
 
+
+    /***
+     * Excuse this monstrosity :) I'll refactor it later.
+     * This method will check which decoding method that it should call based on the next character in the iterator.
+     * @param iterator
+     * @return an Object which is decoded based on their data type
+     */
     protected static Object decodeNextObject(ListIterator<Byte> iterator) {
-        if(IteratorUtil.peekNextCharacter(iterator) == listStartChar || IteratorUtil.peekNextCharacter(iterator) == numberStartChar ||IteratorUtil.peekNextCharacter(iterator) == dictionaryStartChar ){
+        if(IteratorUtil.peekNextCharacter(iterator) == LIST_START_CHAR || IteratorUtil.peekNextCharacter(iterator) == NUMBER_START_CHAR ||IteratorUtil.peekNextCharacter(iterator) == DICTIONARY_START_CHAR ){
             Byte current = iterator.next();
-            if (Objects.equals(current, listStartChar)) return decodeList(iterator);
-            if (Objects.equals(current, numberStartChar)) return decodeNumber(iterator);
-            if (Objects.equals(current, dictionaryStartChar)) return decodeDictionary(iterator);
+            if (Objects.equals(current, LIST_START_CHAR)) return decodeList(iterator);
+            if (Objects.equals(current, NUMBER_START_CHAR)) return decodeNumber(iterator);
+            if (Objects.equals(current, DICTIONARY_START_CHAR)) return decodeDictionary(iterator);
         }
        return decodeByteArray(iterator);
     }
 
-    protected static Object decodeByteArray(ListIterator<Byte> iterator) {
+    /***
+     *  This method decodes the byte array which is
+     * @param iterator
+     * @return
+     */
+    protected static String decodeByteArray(ListIterator<Byte> iterator) {
         List<Byte> arrayLengthBytes = new ArrayList<>();
 
         do {
             Byte current = iterator.next();
-            if (current == byteArrayDivider) break;
+            if (current == BYTE_ARRAY_DIVIDER) break;
             arrayLengthBytes.add(current);
         } while (iterator.hasNext());
 
@@ -52,7 +69,7 @@ public class BEncoding {
             byteArray[i] = current;
         }
 
-        return byteArray;
+        return new String(byteArray);
     }
 
     protected static Dictionary<String,Object> decodeDictionary(ListIterator<Byte> iterator) {
@@ -60,10 +77,9 @@ public class BEncoding {
         List<String> keys = new ArrayList<>();
 
         while(iterator.hasNext()){
-            if(IteratorUtil.checkNextValueEquals(iterator,dictionaryEndChar)) break;
+            if(IteratorUtil.checkNextValueEquals(iterator, DICTIONARY_END_CHAR)) break;
 
-            String key = new String((byte[]) decodeByteArray(iterator));
-            // We need to something right here to check the value of the index value without moving the cursor
+            String key = decodeByteArray(iterator);
             Object value = decodeNextObject(iterator);
 
             keys.add(key);
@@ -77,7 +93,7 @@ public class BEncoding {
 
         while (iterator.hasNext()) {
             Byte current = iterator.next();
-            if (current == numberEndChar) {
+            if (current == NUMBER_END_CHAR) {
                 break;
             }
             byteObjectList.add(current);
@@ -93,25 +109,14 @@ public class BEncoding {
     private static Object decodeList(ListIterator<Byte> iterator) {
         List<Object> list = new ArrayList<>();
 
-//        Byte current = iterator.next();
-//        System.out.println(current);
-//        if(Objects.equals(current,listStartChar)){
-//            decodeList(iterator);
-//        }else{
-//            iterator.previous();
-//        }
-
-
         while(iterator.hasNext()) {
-            iterator.next(); // Skip the element "ListIntroChar"
-            Byte current = iterator.next();
-            System.out.println(current);
-            if (Objects.equals(current, listEndChar)) {
+//            iterator.next(); // Skip the ListStartCharacter "l"
+            Byte nextChar = (Byte) IteratorUtil.peekNextCharacter(iterator);
+            if (Objects.equals(nextChar, LIST_END_CHAR)) {
                 break;
             }
-            iterator.previous(); // Move the cursor backward to fully include the data
-//            list.add(decodeNextObject(iterator));
-            list.add(new String((byte[]) decodeByteArray(iterator)));
+
+            list.add(decodeNextObject(iterator));
         }
 
         return list;

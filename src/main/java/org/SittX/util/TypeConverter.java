@@ -17,5 +17,19 @@ public class TypeConverter {
         }
         return objectArray;
     }
+    public static Character[] toCharacterObjectArray(char[] array) {
+        Character[] objectArray = new Character[array.length];
+        for (int i = 0; i < array.length; i++) {
+            objectArray[i] = array[i];
+        }
+        return objectArray;
+    }
 
+    public static char[] toCharArrayFromObjectArray(Character[] array) {
+        char[] objectArray = new char[array.length];
+        for (int i = 0; i < array.length; i++) {
+            objectArray[i] = array[i];
+        }
+        return objectArray;
+    }
 }

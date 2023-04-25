@@ -17,9 +17,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class BEncodingTest {
 
     @Test
-    void decode() throws FileNotFoundException {
-        byte[] contents = FileIO.readFileIntoByteArray("testing.txt.torrent");
-        Object result = BEncoding.decode(contents);
+    void decode() {
+        char[] chars = FileIO.readFileIntoCharArray("Rust.torrent");
+        Object result = BEncodingChar.decode(chars);
         System.out.println(result);
     }
 
